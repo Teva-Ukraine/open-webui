@@ -38,6 +38,7 @@
 	let expandedResult = false;
 
 	$: if (!open) expandedResult = false;
+
 	export let buttonClassName =
 		'w-fit text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition';
 
@@ -54,6 +55,7 @@
 	function formatJSONString(str: string) {
 		try {
 			const parsed = parseJSONString(str);
+
 			if (typeof parsed === 'object') {
 				return JSON.stringify(parsed, null, 2);
 			} else {
@@ -67,9 +69,11 @@
 	function parseArguments(str: string): Record<string, unknown> | null {
 		try {
 			const parsed = parseJSONString(str);
+
 			if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
 				return parsed as Record<string, unknown>;
 			}
+
 			return null;
 		} catch {
 			return null;
@@ -77,6 +81,7 @@
 	}
 
 	$: args = decode(attributes?.arguments ?? '');
+
 	export let resultContent: string = '';
 
 	$: result = resultContent || decode(attributes?.result ?? '');
@@ -97,6 +102,7 @@
 				<div class="w-full text-xs text-gray-500">
 					{attributes.name}
 				</div>
+
 				{#each embeds as embed, idx}
 					<div class="my-2" id={`${componentId}-tool-call-embed-${idx}`}>
 						<FullHeightIframe
@@ -138,12 +144,13 @@
 							<WrenchSolid className="size-3.5" />
 						</div>
 					{/if}
-	
+
 					<!-- Label -->
 					<div class="flex-1 line-clamp-1">
-						<!-- Short label (below md) -->
+						<!-- Short label below md -->
 						<span class="@md:hidden text-black dark:text-white">{attributes.name}</span>
-						<!-- Full label (md and above) -->
+
+						<!-- Full label md and above -->
 						<span class="hidden @md:inline font-normal">
 							{#if isDone}
 								<Markdown
@@ -162,7 +169,7 @@
 							{/if}
 						</span>
 					</div>
-	
+
 					<!-- Chevron -->
 					<div class="flex shrink-0 self-center translate-y-[1px]">
 						{#if open}
@@ -173,7 +180,7 @@
 					</div>
 				</div>
 			</div>
-	
+
 			{#if open}
 				<div transition:slide={{ duration: 300, easing: quintOut, axis: 'y' }}>
 					<div class="border border-gray-50 dark:border-gray-850/30 rounded-2xl my-1.5 p-3 space-y-3">
@@ -185,17 +192,18 @@
 								>
 									{$i18n.t('Input')}
 								</div>
-	
+
 								{#if parsedArgs}
 									<div class="px-1 space-y-0.5">
 										{#each Object.entries(parsedArgs) as [key, value]}
 											<div class="flex gap-2 text-xs py-0.5">
-												<span class="font-medium text-gray-600 dark:text-gray-400 shrink-0"
-													>{key}</span
-												>
-												<span class="text-gray-800 dark:text-gray-200 break-all"
-													>{typeof value === 'object' ? JSON.stringify(value) : value}</span
-												>
+												<span class="font-medium text-gray-600 dark:text-gray-400 shrink-0">
+													{key}
+												</span>
+
+												<span class="text-gray-800 dark:text-gray-200 break-all">
+													{typeof value === 'object' ? JSON.stringify(value) : value}
+												</span>
 											</div>
 										{/each}
 									</div>
@@ -209,7 +217,7 @@
 								{/if}
 							</div>
 						{/if}
-	
+
 						<!-- Output -->
 						{#if isDone && result}
 							<div>
@@ -218,6 +226,7 @@
 								>
 									{$i18n.t('Output')}
 								</div>
+
 								<div class="w-full max-w-none!">
 									{#if typeof parsedResult === 'object' && parsedResult !== null}
 										<pre
@@ -229,10 +238,12 @@
 									{:else}
 										{@const resultStr = String(parsedResult)}
 										{@const isTruncated = resultStr.length > RESULT_PREVIEW_LIMIT && !expandedResult}
+
 										<pre
 											class="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap break-words font-mono">{isTruncated
 												? resultStr.slice(0, RESULT_PREVIEW_LIMIT)
 												: resultStr}</pre>
+
 										{#if isTruncated}
 											<button
 												class="mt-1 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition"
@@ -254,21 +265,21 @@
 			{/if}
 		{/if}
 
-	<!-- Files display (images etc.) when done -->
-	{#if isDone}
-		{#if typeof files === 'object'}
-			{#each files ?? [] as file, idx}
-				{#if typeof file === 'string'}
-					{#if file.startsWith('data:image/')}
-						<Image id={`${componentId}-tool-call-result-${idx}`} src={file} alt="Image" />
+		<!-- Files display images etc. when done -->
+		{#if isDone}
+			{#if typeof files === 'object'}
+				{#each files ?? [] as file, idx}
+					{#if typeof file === 'string'}
+						{#if file.startsWith('data:image/')}
+							<Image id={`${componentId}-tool-call-result-${idx}`} src={file} alt="Image" />
+						{/if}
+					{:else if typeof file === 'object'}
+						{#if (file.type === 'image' || (file?.content_type ?? '').startsWith('image/')) && file.url}
+							<Image id={`${componentId}-tool-call-result-${idx}`} src={file.url} alt="Image" />
+						{/if}
 					{/if}
-				{:else if typeof file === 'object'}
-					{#if (file.type === 'image' || (file?.content_type ?? '').startsWith('image/')) && file.url}
-						<Image id={`${componentId}-tool-call-result-${idx}`} src={file.url} alt="Image" />
-					{/if}
-				{/if}
-			{/each}
+				{/each}
+			{/if}
 		{/if}
-	{/if}
-</div>
+	</div>
 {/if}
