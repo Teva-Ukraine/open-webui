@@ -1,5 +1,7 @@
 <script>
 	import { getContext } from 'svelte';
+	import { user } from '$lib/stores';
+
 	const i18n = getContext('i18n');
 
 	import StatusItem from './StatusHistory/StatusItem.svelte';
@@ -27,7 +29,7 @@
 	}
 </script>
 
-{#if history && history.length > 0}
+{#if $user?.role === 'admin' && history && history.length > 0}
 	{#if status?.hidden !== true}
 		<div class="text-sm flex flex-col w-full">
 			<button
