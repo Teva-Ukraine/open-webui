@@ -538,15 +538,6 @@
 		codeInterpreterEnabled = false;
 	}
 
-	// Disable extra input actions for non-admin users
-	$: if (hideExtraInputButtons) {
-		selectedToolIds = [];
-		selectedFilterIds = [];
-		webSearchEnabled = false;
-		imageGenerationEnabled = false;
-		codeInterpreterEnabled = false;
-	}
-
 	// Clear selected terminal when model doesn't support terminal
 	$: if ($selectedTerminalId && terminalCapableModels.length === 0) {
 		selectedTerminalId.set(null);
