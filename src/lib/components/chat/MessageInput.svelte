@@ -1850,7 +1850,7 @@
 											</Tooltip>
 										{/if}
 
-										{#if codeInterpreterEnabled}
+										{#if !hideExtraInputButtons && codeInterpreterEnabled}
 											<Tooltip content={$i18n.t('Code Interpreter')} placement="top">
 												<button
 													aria-label={codeInterpreterEnabled
