@@ -10,7 +10,7 @@
 	import { copyToClipboard, unescapeHtml } from '$lib/utils';
 
 	import { WEBUI_BASE_URL } from '$lib/constants';
-	import { settings } from '$lib/stores';
+	import { settings, user } from '$lib/stores';
 
 	import CodeBlock from '$lib/components/chat/Messages/CodeBlock.svelte';
 	import MarkdownInlineTokens from '$lib/components/chat/Messages/Markdown/MarkdownInlineTokens.svelte';
@@ -54,6 +54,24 @@
 	};
 
 	const GROUPABLE_DETAIL_TYPES = new Set(['tool_calls', 'reasoning', 'code_interpreter']);
+
+	const HIDDEN_DETAIL_TYPES_FOR_USERS = new Set(['tool_calls', 'code_interpreter']);
+
+	const shouldHideDetailFromUser = (token) => {
+		return (
+			$user?.role !== 'admin' &&
+			HIDDEN_DETAIL_TYPES_FOR_USERS.has(token?.attributes?.type ?? '')
+		);
+	};
+
+	const shouldHideDetailGroupFromUser = (token) => {
+		return (
+			$user?.role !== 'admin' &&
+			(token?.items ?? []).some((item) =>
+				HIDDEN_DETAIL_TYPES_FOR_USERS.has(item?.attributes?.type ?? '')
+			)
+		);
+	};
 
 	const isGroupableDetailToken = (token: Token & { attributes?: { type?: string } }) => {
 		return token?.type === 'details' && GROUPABLE_DETAIL_TYPES.has(token?.attributes?.type ?? '');
@@ -101,38 +119,22 @@
 	const exportTableToCSVHandler = (token, tokenIdx = 0) => {
 		console.log('Exporting table to CSV');
 
-		// Extract header row text, decode HTML entities, and escape for CSV.
 		const header = token.header.map(
 			(headerCell) => `"${decode(headerCell.text).replace(/"/g, '""')}"`
 		);
 
-		// Create an array for rows that will hold the mapped cell text.
 		const rows = token.rows.map((row) =>
 			row.map((cell) => {
-				// Map tokens into a single text
 				const cellContent = cell.tokens.map((token) => token.text).join('');
-				// Decode HTML entities and escape double quotes, wrap in double quotes
 				return `"${decode(cellContent).replace(/"/g, '""')}"`;
 			})
 		);
 
-		// Combine header and rows
 		const csvData = [header, ...rows];
-
-		// Join the rows using commas (,) as the separator and rows using newline (\n).
 		const csvContent = csvData.map((row) => row.join(',')).join('\n');
-
-		// Log rows and CSV content to ensure everything is correct.
-		console.log(csvData);
-		console.log(csvContent);
-
-		// To handle Unicode characters, you need to prefix the data with a BOM:
-		const bom = '\uFEFF'; // BOM for UTF-8
-
-		// Create a new Blob prefixed with the BOM to ensure proper Unicode encoding.
+		const bom = '\uFEFF';
 		const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=UTF-8' });
 
-		// Use FileSaver.js's saveAs function to save the generated CSV file.
 		saveAs(blob, `table-${id}-${tokenIdx}.csv`);
 	};
 </script>
@@ -367,65 +369,68 @@
 			</ul>
 		{/if}
 	{:else if token.type === 'detail_group'}
-		<ConsecutiveDetailsGroup
-			id={`${id}-${tokenIdx}-detail-group`}
-			tokens={token.items}
-			messageDone={done}
-		>
-			<div slot="content" class="space-y-1">
-				{#each token.items as detailToken, detailIdx}
-					{@const textContent = getDetailTextContent(detailToken)}
+		{#if !shouldHideDetailGroupFromUser(token)}
+			<ConsecutiveDetailsGroup
+				id={`${id}-${tokenIdx}-detail-group`}
+				tokens={token.items}
+				messageDone={done}
+			>
+				<div slot="content" class="space-y-1">
+					{#each token.items as detailToken, detailIdx}
+						{@const textContent = getDetailTextContent(detailToken)}
 
-					{#if detailToken?.attributes?.type === 'tool_calls'}
-						<ToolCallDisplay
-							id={`${id}-${tokenIdx}-${detailIdx}-tc`}
-							attributes={detailToken.attributes}
-							resultContent={getDetailTextContent(detailToken)}
-							grouped={true}
-							open={$settings?.expandDetails ?? false}
-							className="w-full space-y-1"
-						/>
-					{:else if textContent.length > 0}
-						<Collapsible
-							title={detailToken.summary}
-							open={$settings?.expandDetails ?? false}
-							attributes={detailToken?.attributes}
-							messageDone={done}
-							className="w-full space-y-1"
-							dir="auto"
-						>
-							<div class="mb-1.5" slot="content">
-								<svelte:self
-									id={`${id}-${tokenIdx}-${detailIdx}-d`}
-									tokens={marked.lexer(decode(detailToken.text))}
-									attributes={detailToken?.attributes}
-									{done}
-									{editCodeBlock}
-									{onTaskClick}
-									{sourceIds}
-									{onSourceClick}
-								/>
-							</div>
-						</Collapsible>
-					{:else}
-						<Collapsible
-							title={detailToken.summary}
-							open={false}
-							disabled={true}
-							attributes={detailToken?.attributes}
-							messageDone={done}
-							className="w-full space-y-1"
-							dir="auto"
-						/>
-					{/if}
-				{/each}
-			</div>
-		</ConsecutiveDetailsGroup>
+						{#if detailToken?.attributes?.type === 'tool_calls'}
+							<ToolCallDisplay
+								id={`${id}-${tokenIdx}-${detailIdx}-tc`}
+								attributes={detailToken.attributes}
+								resultContent={getDetailTextContent(detailToken)}
+								grouped={true}
+								open={$settings?.expandDetails ?? false}
+								className="w-full space-y-1"
+							/>
+						{:else if textContent.length > 0}
+							<Collapsible
+								title={detailToken.summary}
+								open={$settings?.expandDetails ?? false}
+								attributes={detailToken?.attributes}
+								messageDone={done}
+								className="w-full space-y-1"
+								dir="auto"
+							>
+								<div class="mb-1.5" slot="content">
+									<svelte:self
+										id={`${id}-${tokenIdx}-${detailIdx}-d`}
+										tokens={marked.lexer(decode(detailToken.text))}
+										attributes={detailToken?.attributes}
+										{done}
+										{editCodeBlock}
+										{onTaskClick}
+										{sourceIds}
+										{onSourceClick}
+									/>
+								</div>
+							</Collapsible>
+						{:else}
+							<Collapsible
+								title={detailToken.summary}
+								open={false}
+								disabled={true}
+								attributes={detailToken?.attributes}
+								messageDone={done}
+								className="w-full space-y-1"
+								dir="auto"
+							/>
+						{/if}
+					{/each}
+				</div>
+			</ConsecutiveDetailsGroup>
+		{/if}
 	{:else if token.type === 'details'}
 		{@const textContent = getDetailTextContent(token)}
 
-		{#if token?.attributes?.type === 'tool_calls'}
-			<!-- Tool calls have dedicated handling with ToolCallDisplay component -->
+		{#if shouldHideDetailFromUser(token)}
+			<!-- Hidden for non-admin users -->
+		{:else if token?.attributes?.type === 'tool_calls'}
 			<ToolCallDisplay
 				id={`${id}-${tokenIdx}-tc`}
 				attributes={token.attributes}
