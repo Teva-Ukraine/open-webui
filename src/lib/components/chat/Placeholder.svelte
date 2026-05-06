@@ -228,7 +228,7 @@
 					{toolServers}
 					{stopResponse}
 					{createMessagePair}
-					placeholder={$i18n.t('How can I help you today?')}
+					placeholder={$i18n.t('Чим я можу допомогти вам сьогодні?')}
 					{onChange}
 					{onUpload}
 					on:submit={(e) => {
