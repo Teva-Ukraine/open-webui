@@ -109,10 +109,7 @@
 	const isMenuItemVisible = (id) => {
 		switch (id) {
 			case 'notes':
-				return (
-					($config?.features?.enable_notes ?? false) &&
-					($user?.role === 'admin' || ($user?.permissions?.features?.notes ?? true))
-				);
+				return ($config?.features?.enable_notes ?? false) && $user?.role === 'admin';
 			case 'workspace':
 				return (
 					$user?.role === 'admin' ||
@@ -302,10 +299,7 @@
 				pinnedChats.set(_pinnedChats);
 			})(),
 			await (async () => {
-				if (
-					$config?.features?.enable_notes &&
-					($user?.role === 'admin' || ($user?.permissions?.features?.notes ?? true))
-				) {
+				if ($config?.features?.enable_notes && $user?.role === 'admin') {
 					console.log('Init pinned notes');
 					const _pinnedNotes = await getPinnedNoteList(localStorage.token).catch(() => []);
 					pinnedNotes.set(_pinnedNotes);
