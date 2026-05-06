@@ -71,48 +71,12 @@ Vestibulum sapien. Proin quam. Etiam ultrices. Suspendisse in justo eu magna luc
 	}
 </script>
 
-<div class="mb-1 flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-400">
+<div class="mb-1 flex gap-1 text-xs font-medium items-center text-gray-600 dark:text-gray-400">
 	{#if filteredPrompts.length > 0}
-		<div class="flex gap-1 items-center">
-			<Bolt />
-			{$i18n.t('Suggested')}
-		</div>
-
-		<button
-			type="button"
-			class="w-fit text-[0.72rem] font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 underline underline-offset-2 transition"
-			on:click={() => {
-				showDisclaimer = true;
-			}}
-		>
-			{CUSTOM_DISCLAIMER_TITLE}
-		</button>
-
-		<div class="text-[0.7rem] font-normal text-gray-500 dark:text-gray-500">
-			{CUSTOM_APP_NAME} · {CUSTOM_APP_VERSION}
-		</div>
+		<Bolt />
+		{$i18n.t('Suggested')}
 	{:else}
 		<!-- Keine Vorschläge -->
-
-		<div
-			class="flex flex-col w-full {$settings?.landingPageMode === 'chat'
-				? ' -mt-1'
-				: 'text-center items-center justify-center'} self-start text-gray-600 dark:text-gray-400"
-		>
-			<button
-				type="button"
-				class="w-fit text-[0.72rem] font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 underline underline-offset-2 transition"
-				on:click={() => {
-					showDisclaimer = true;
-				}}
-			>
-				{CUSTOM_DISCLAIMER_TITLE}
-			</button>
-
-			<div class="text-[0.7rem] font-normal text-gray-500 dark:text-gray-500">
-				{CUSTOM_APP_NAME} · {CUSTOM_APP_VERSION}
-			</div>
-		</div>
 	{/if}
 </div>
 
@@ -154,6 +118,26 @@ Vestibulum sapien. Proin quam. Etiam ultrices. Suspendisse in justo eu magna luc
 			{/each}
 		</div>
 	{/if}
+</div>
+
+<div
+	class="mt-3 flex flex-col gap-1 {$settings?.landingPageMode === 'chat'
+		? 'items-start text-left'
+		: 'items-center text-center'} text-xs text-gray-500 dark:text-gray-500"
+>
+	<button
+		type="button"
+		class="w-fit text-[0.72rem] font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 underline underline-offset-2 transition"
+		on:click={() => {
+			showDisclaimer = true;
+		}}
+	>
+		{CUSTOM_DISCLAIMER_TITLE}
+	</button>
+
+	<div class="text-[0.7rem] font-normal">
+		{CUSTOM_APP_NAME} · {CUSTOM_APP_VERSION}
+	</div>
 </div>
 
 {#if showDisclaimer}
