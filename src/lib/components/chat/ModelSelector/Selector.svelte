@@ -130,6 +130,11 @@
 	let selectedTag = '';
 	let selectedConnectionType = '';
 
+	$: if ($user && $user.role !== 'admin') {
+		selectedTag = '';
+		selectedConnectionType = '';
+	}
+
 	let ollamaVersion = null;
 	let selectedModelIdx = 0;
 
@@ -593,7 +598,7 @@
 					{/if}
 
 					<div class="px-2">
-						{#if tags && items.filter((item) => !(item.model?.info?.meta?.hidden ?? false)).length > 0}
+						{#if $user?.role === 'admin' && tags && items.filter((item) => !(item.model?.info?.meta?.hidden ?? false)).length > 0}
 							<div
 								class=" flex w-full bg-white dark:bg-gray-850 overflow-x-auto scrollbar-none font-[450] mb-0.5"
 								on:wheel={(e) => {
