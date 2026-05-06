@@ -252,27 +252,29 @@
 			</Tooltip>
 		{/if}
 
-		<ModelItemMenu
-			bind:show={showMenu}
-			model={item.model}
-			{pinModelHandler}
-			{deleteModelHandler}
-			copyLinkHandler={() => {
-				copyLinkHandler(item.model);
-			}}
-		>
-			<button
-				aria-label={`${$i18n.t('More Options')}`}
-				class="flex"
-				on:click={(e) => {
-					e.preventDefault();
-					e.stopPropagation();
-					showMenu = !showMenu;
+		{#if $user?.role === 'admin'}
+	<ModelItemMenu
+				bind:show={showMenu}
+				model={item.model}
+				{pinModelHandler}
+				{deleteModelHandler}
+				copyLinkHandler={() => {
+					copyLinkHandler(item.model);
 				}}
 			>
-				<EllipsisHorizontal />
-			</button>
-		</ModelItemMenu>
+				<button
+					aria-label={`${$i18n.t('More Options')}`}
+					class="flex"
+					on:click={(e) => {
+						e.preventDefault();
+						e.stopPropagation();
+						showMenu = !showMenu;
+					}}
+				>
+					<EllipsisHorizontal />
+				</button>
+			</ModelItemMenu>
+		{/if}
 
 		{#if value === item.value}
 			<div>
