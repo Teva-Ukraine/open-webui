@@ -359,7 +359,7 @@
 				</div>
 			{/if}
 
-			{#if ($config?.features?.enable_notes ?? false) && ($user?.role === 'admin' || ($user?.permissions?.features?.notes ?? true))}
+			{#if ($config?.features?.enable_notes ?? false) && $user?.role === 'admin'}
 				<div class="flex items-center w-full">
 					<a
 						href="/notes"
@@ -403,7 +403,7 @@
 				</div>
 			{/if}
 
-			{#if $config?.features?.enable_calendar && ($user?.role === 'admin' || $user?.permissions?.features?.calendar)}
+			{#if $config?.features?.enable_calendar && $user?.role === 'admin'}
 				<div class="flex items-center w-full">
 					<a
 						href="/calendar"
