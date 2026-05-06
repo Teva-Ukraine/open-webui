@@ -485,6 +485,12 @@
 
 	const getAvailableSettings = () => {
 		return allSettings.filter((tab) => {
+			if (
+					$user?.role !== 'admin' &&
+					['interface', 'personalization', 'audio', 'data_controls', 'about'].includes(tab.id)
+				) {
+					return false;
+				}
 			if (tab.id === 'connections') {
 				return $config?.features?.enable_direct_connections;
 			}
