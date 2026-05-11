@@ -7,11 +7,50 @@
 	const i18n = getContext('i18n');
 
 	const CUSTOM_APP_NAME = 'Market AI Agent';
-	const CUSTOM_APP_VERSION = 'v0.1.8';
+	const CUSTOM_APP_VERSION = 'v0.1.27';
 	const CUSTOM_DISCLAIMER_TITLE = 'Disclaimer';
-	const CUSTOM_DISCLAIMER_TEXT = `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-Fusce ac turpis quis ligula lacinia aliquet. Mauris ipsum. Nulla metus metus, ullamcorper vel, tincidunt sed, euismod in, nibh. Quisque volutpat condimentum velit. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nam nec ante. 
-Vestibulum sapien. Proin quam. Etiam ultrices. Suspendisse in justo eu magna luctus suscipit. Sed lectus. Integer euismod lacus luctus magna.  Integer id quam. Morbi mi. Quisque nisl felis, venenatis tristique, dignissim in, ultrices sit amet, augue. Proin sodales libero eget ante.`;
+
+	const CUSTOM_DISCLAIMER_TEXT = `
+Цей AI агент (далі — «Сервіс») надається у межах пілотного проєкту та призначений виключно для внутрішнього використання співробітниками компанії Teva.
+
+1. Джерело та обмеження даних
+
+Сервіс формує відповіді на основі ринкових даних сторонніх провайдерів (далі — «Провайдери даних»), що доступні компанії на підставі ліцензійних договорів.
+
+Такі дані:
+- обмежені за періодом (historical scope);
+- мають обмежену глибину та деталізацію;
+- можуть не відображати повну або актуальну ринкову ситуацію.
+
+2. Цільове призначення
+
+Сервіс призначений виключно для внутрішнього аналітичного використання та підтримки прийняття бізнес-рішень. Він не є офіційним джерелом звітності, не замінює перевірку даних та не повинен використовуватись як єдине джерело для прийняття критичних рішень.
+
+3. Характер інформації
+
+Відповіді генеруються з використанням алгоритмів штучного інтелекту і можуть бути неповними, неточними або потребувати додаткової верифікації з боку користувача.
+
+4. Конфіденційність та використання
+
+Дані, аналітика та результати, отримані через Сервіс:
+- є конфіденційною інформацією;
+- захищені умовами ліцензійних договорів із Провайдерами даних;
+- підпадають під внутрішні політики компанії та договірні зобов’язання користувача, включаючи, але не обмежуючись, трудовими договорами та NDA.
+
+Будь-яке копіювання, передача, публікація, розповсюдження або використання за межами компанії суворо заборонено без попереднього офіційного погодження.
+
+5. Обмеження відповідальності
+
+Компанія, її афілійовані особи та постачальники технологій не несуть відповідальності за будь-які наслідки, що виникають у результаті використання або неможливості використання Сервісу. Користувач несе відповідальність за перевірку та використання отриманої інформації.
+
+6. Пілотний статус
+
+Сервіс є пілотним рішенням. Функціональність, логіка роботи та доступні дані можуть змінюватися без попереднього повідомлення.
+
+7. Прийняття умов
+
+Користуючись Сервісом, ви підтверджуєте, що ознайомилися з цим дисклеймером, розумієте його зміст та погоджуєтеся з його умовами.
+	`.trim();
 
 	export let suggestionPrompts = [];
 	export let className = '';
@@ -152,13 +191,13 @@ Vestibulum sapien. Proin quam. Etiam ultrices. Suspendisse in justo eu magna luc
 		<!-- svelte-ignore a11y-click-events-have-key-events -->
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<div
-			class="w-full max-w-md rounded-2xl bg-white dark:bg-gray-850 text-gray-800 dark:text-gray-100 shadow-xl border border-gray-100 dark:border-gray-800 p-5"
+			class="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-2xl bg-white dark:bg-gray-850 text-gray-800 dark:text-gray-100 shadow-xl border border-gray-100 dark:border-gray-800 p-5"
 			role="dialog"
 			aria-modal="true"
 			aria-label={CUSTOM_DISCLAIMER_TITLE}
 			on:click|stopPropagation
 		>
-			<div class="flex items-center justify-between gap-4 mb-3">
+			<div class="mb-3 flex shrink-0 items-center justify-between gap-4">
 				<div class="text-base font-semibold">
 					{CUSTOM_DISCLAIMER_TITLE}
 				</div>
@@ -175,11 +214,13 @@ Vestibulum sapien. Proin quam. Etiam ultrices. Suspendisse in justo eu magna luc
 				</button>
 			</div>
 
-			<div class="text-sm leading-6 text-gray-600 dark:text-gray-300 whitespace-pre-line">
+			<div
+				class="overflow-y-auto pr-1 text-sm leading-6 text-gray-600 dark:text-gray-300 whitespace-pre-line"
+			>
 				{CUSTOM_DISCLAIMER_TEXT}
 			</div>
 
-			<div class="mt-5 flex justify-end">
+			<div class="mt-5 flex shrink-0 justify-end">
 				<button
 					type="button"
 					class="px-4 py-1.5 rounded-full bg-black text-white dark:bg-white dark:text-black text-sm font-medium hover:opacity-90 transition"
