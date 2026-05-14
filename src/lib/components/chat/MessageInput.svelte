@@ -99,7 +99,7 @@
 	import InputModal from '../common/InputModal.svelte';
 	import Expand from '../icons/Expand.svelte';
 	import QueuedMessageItem from './MessageInput/QueuedMessageItem.svelte';
-	import TaskList from './Messages/ResponseMessage/TaskList.svelte';
+	// import TaskList from './Messages/ResponseMessage/TaskList.svelte';
 
 	const i18n = getContext('i18n');
 
@@ -1258,13 +1258,6 @@
 							class="hidden"
 							on:click={() => createMessagePair(prompt)}
 						/>
-
-						<!-- Task list display -->
-						{#if isActive && chatTasks.length > 0}
-							<div class="mx-1">
-								<TaskList tasks={chatTasks} />
-							</div>
-						{/if}
 
 						<!-- Queued messages display -->
 						{#if messageQueue.length > 0}
