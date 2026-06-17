@@ -1,0 +1,183 @@
+{
+  "database": "analyticsdb",
+  "schema": "public",
+  "tables": {
+    "audit": {
+      "description": "Таблиця з помісячним розрахунком обсягу продажів фармацевтичних препаратів від аптек до кінцевого споживача у грошовому еквіваленті та кількості упаковок по всім областям України згідно з даними Proxima Research",
+      "columns": {
+        "drugsid": "Унікальний числовий ідентифікатор продукту (Primary Key)",
+        "year": "Звітний рік (Primary Key)",
+        "period": "Період звітності (номер місяця) (Primary Key)",
+        "q": "Кількість упаковок відповідного продукту",
+        "vuah": "Загальна сума проданих продуктів в грн.",
+        "vusd": "Загальна сума проданих продуктів в амер.дол.",
+        "puah": "Ціна закупівлі фармацевтичної продукції в розрізі SKU, що постачаються в точки роздрібної реалізації (за 1 одиницю) в гривні",
+        "pusd": "Ціна закупівлі фармацевтичної продукції в розрізі SKU, що постачаються в точки роздрібної реалізації (за 1 одиницю) в доларах"
+      },
+      "primary_keys": ["drugsid", "year", "period"],
+      "grain": "1 row per drugsid per year per month",
+      "period_granularity": "month"
+    },
+    "refdrugs": {
+      "description": "Довіник продуктів згідно з даними Proxima Research",
+      "columns": {
+        "drugsid": "Унікальний числовий ідентифікатор продукту",
+        "inn": "Назва діючої речовини препарату",
+        "category": "Категорія продукту (D, FS, MCs, C, CLN)",
+        "innukr": "Діюча речовина препарату українською мовою",
+        "brandukr": "Назва бренду препарата укр.мовою",
+        "marketorgukr": "Назва компанії виробника продукту на укр.мові",
+        "fullmedicationnameukr": "Повна назва лікарського препарату укр.мовою",
+        "fullmedicationname": "Повна назва лікарського препарату англ.мовою",
+        "brand": "Назва бренду препарата",
+        "rxotc": "Розріз препарату рецептрурний/безрецептурний",
+        "marketorg": "Назва компанії виробника продукту англ.мовою",
+        "atccode5": "ATC-код п`ятого рівня лікарського засобу"
+      },
+      "primary_keys": ["drugsid"]
+    },
+    "competitivegroups": {
+      "description": "Перелік гравцій конкурентних  груп, формується на стороні Proxima research по параметрам",
+      "columns": {
+        "drugsid": "Унікальний числовий ідентифікатор продукту (Primary Key)",
+        "competitivegroupname": "Назва конкурентної групи англ.мовою",
+        "ismain": "Чи є конкурентна група головною для даного бренда (кожен бренд має лише 1 головну конкурентну групу в розрізі Rx/OTC)",
+        "mainBrand": "Основний бренд відповідної конкурентної групи"
+      },
+      "primary_keys": ["drugsid"]
+    }
+  },
+  "joins": [
+    {
+      "from": "audit.drugsid",
+      "to": "refdrugs.drugsid",
+      "type": "many_to_one",
+      "required_for": ["brand", "manufacturer", "inn", "category", "rxotc"]
+    },
+    {
+      "from": "refdrugs.drugsid",
+      "to": "competitivegroups.drugsid",
+      "type": "one_to_many",
+      "risk": "may duplicate audit rows",
+      "rule": "deduplicate competitivegroups before aggregation when joining to audit"
+    }
+],
+  "metrics_definitions": [
+    {
+      "metric_name": "Продажі у гривні",
+      "formula": "SUM(vuah)",
+      "unit": "UAH"
+    },
+    {
+      "metric_name": "Продажі у доларах",
+      "formula": "SUM(vusd)",
+      "unit": "USD"
+    },
+    {
+      "metric_name": "Продажі в упаковках",
+      "formula": "SUM(q)",
+      "unit": "packs"
+    },
+    {
+      "metric_name": "Середня ціна у гривні",
+      "business_definition": "Зважена середня ціна за упаковку",
+      "formula_sql": "SUM(vuah) / NULLIF(SUM(q), 0)",
+      "unit": "UAH per pack",
+      "do_not_use": "AVG(puah), unless user explicitly asks for arithmetic average price"
+    },
+    {
+      "metric_name": "Середня ціна у доларах",
+      "business_definition": "Зважена середня ціна за упаковку",
+      "formula_sql": "SUM(vusd) / NULLIF(SUM(q), 0)",
+      "unit": "USD per pack",
+      "do_not_use": "AVG(pusd), unless user explicitly asks for arithmetic average price"
+    },
+    {
+      "metric_name": "Частка ринку",
+      "formula": "(sales_of_entity / total_market_sales) * 100",
+      "unit": "%"
+    },
+    {
+      "metric_name": "Evolution Index",
+      "formula": "market_share_ytd_current_year / market_share_ytd_previous_year",
+      "unit": "%"
+    }
+  ],
+  "entity_resolution": {
+  "brand": {
+    "ukrainian_fields": ["brandukr"],
+    "english_fields": ["brand"],
+    "display_preference": "brandukr"
+  },
+  "manufacturer": {
+    "ukrainian_fields": ["marketorgukr"],
+    "english_fields": ["marketorg"],
+    "display_preference": "marketorgukr"
+  },
+  "inn": {
+    "ukrainian_fields": ["innukr"],
+    "english_fields": ["inn"],
+    "display_preference": "innukr"
+  },
+  "product": {
+    "ukrainian_fields": ["fullmedicationnameukr"],
+    "english_fields": ["fullmedicationname"],
+    "display_preference": "fullmedicationnameukr"
+  }
+  },
+  "time_rules": {
+    "year_field": "audit.year",
+    "period_field": "audit.period",
+    "period_granularity": "month",
+    "month_mapping": {
+      "1": "січень",
+      "2": "лютий",
+      "3": "березень",
+      "4": "квітень",
+      "5": "травень",
+      "6": "червень",
+      "7": "липень",
+      "8": "серпень",
+      "9": "вересень",
+      "10": "жовтень",
+      "11": "листопад",
+      "12": "грудень"
+    },
+    "incomplete_year_rule": "If max(period) < 12, compare only the same available periods across years.",
+    "last_n_years_including_current": "Use comparable YTD periods for all years if the latest year is incomplete."
+  },
+  "category_definitions": {
+    "D": {
+      "business_name": "Лікарські засоби",
+      "scope": "Retail SO",
+      "default": true
+    },
+    "FS": {
+      "business_name": "Food Supplements",
+      "scope": "Retail SO"
+    },
+    "MCs": {
+      "business_name": "Medical Cosmetics",
+      "scope": "Retail SO"
+    },
+    "C": {
+      "business_name": "Cosmetics",
+      "scope": "Retail SO"
+    },
+    "CLN": {
+      "business_name": "Clinical Nutrition",
+      "scope": "Retail SO"
+    }
+  },
+  "rules": [
+    "Default category is category = 'D'",
+    "Default value metric is vuah",
+    "Default volume metric is q",
+    "Use marketorg for manufacturer queries",
+    "Use brand or fullmedicationname for brand/product queries",
+    "Use inn for active ingredient queries",
+    "Use year and Period for time filtering",
+    "Do not use Penetration logic",
+    "If user entering brand/marketorg/inn/fullmedicationname etc. in Ukrainian language USE fields on ukrainian language for filtering"
+  ]
+}
